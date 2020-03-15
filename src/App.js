@@ -5,16 +5,23 @@ import './App.css';
 function NumberSelector({label, 
                          defaultNum, 
                          decrement,
-                         increment}){
+                         increment,
+                         id}){
   return (
     <div>
-        <h3>{label}</h3>
-        <h4>{defaultNum}</h4>
-        <div onClick={decrement}>Decrease</div>
-        <div onClick={increment}>Increase</div>
+        <h3 id={id+'-label'}>{label}</h3>
+        <h4 id={id+'-length'}>{defaultNum}</h4>
+        <div onClick={decrement} id={id+'-decrement'}>Decrease</div>
+        <div onClick={increment} id={id+'-increment'}>Increase</div>
     </div>
     )
 }
+
+
+
+
+
+
 
 
 function Title(){
@@ -24,8 +31,8 @@ function Title(){
 function Clock({modeIsSession, time}){
   return (
     <div>
-      <h2>{modeIsSession ? 'Session' : 'Break'}</h2>
-      <h1>{convertSecondsToMMSS(time)}</h1>
+      <h2 id='timer-label'>{modeIsSession ? 'Session' : 'Break'}</h2>
+      <h1 id='time-left'>{convertSecondsToMMSS(time)}</h1>
     </div>
     )
 }
@@ -33,22 +40,22 @@ function Clock({modeIsSession, time}){
 function ControlPanel({ togglePlaying, resetButton }){
   return (
     <div>
-      <div onClick={togglePlaying}>Play</div>
-      <div onClick={resetButton}>Reset</div>
+      <div id='start_stop' onClick={togglePlaying}>Play</div>
+      <div id='reset' onClick={resetButton}>Reset</div>
     </div>
     )
 }
 
 const DEFAULT_STATE = {
-        break: 5,
-        session: 25,
+        break: 1,
+        session: 1,
         playing: false,
         modeIsSession: true,
 }
 
 DEFAULT_STATE['time'] = DEFAULT_STATE['session'] * 60;
 
-const TIME_INTERVAL = 5;
+const TIME_INTERVAL = 1000;
 
 class App extends React.Component {
 
@@ -146,11 +153,11 @@ class App extends React.Component {
   }
 
   tick(){
-    if (this.state.playing && this.state.time > 0) {
+    if (this.state.playing && this.state.time >= 0) {
         this.setState({time: this.state.time-1})
     }
 
-    if (this.state.time === 0){
+    if (this.state.playing && this.state.time === -1){
       if (this.state.modeIsSession){
       this.setState({
         modeIsSession: !this.state.modeIsSession,
@@ -173,6 +180,7 @@ class App extends React.Component {
 
   const sessionProps = {
     label: 'Session Length',
+    id: 'session',
     defaultNum: this.state.session,
     increment: this.incrementSession,
     decrement: this.decrementSession,
@@ -180,6 +188,7 @@ class App extends React.Component {
 
   const breakProps = {
     label: 'Break Length',
+    id: 'break',
     defaultNum: this.state.break,
     increment: this.incrementBreak,
     decrement: this.decrementBreak,
@@ -213,14 +222,22 @@ class App extends React.Component {
 }
 
 function convertSecondsToMMSS(secs){
-    const mm = Math.floor(secs / 60);
-    const ss = secs % 60;
-    if (ss < 10){
-      return `${mm}:0${ss}`
-    } else {
-      return `${mm}:${ss}`
-    }
+    const mm = padZeros(Math.floor(secs / 60));
+    const ss = padZeros(secs % 60);
+    
+    return `${mm}:${ss}`
     
 }
 
+function padZeros(time){
+  if (time < 10){
+       return `0${time}`
+    } else {
+       return `${time}`
+    } 
+
+}
+
 export default App;
+
+
