@@ -2,6 +2,23 @@ import React from 'react';
 import './App.css';
 
 
+
+const DEFAULT_STATE = {
+        break: 5,
+        session: 1,
+        playing: false,
+        modeIsSession: true,
+        beep: false,
+}
+
+DEFAULT_STATE['time'] = DEFAULT_STATE['session'] * 60;
+
+
+
+const TIME_INTERVAL = 10;
+const BEEP_INTERVAL = 2000;
+
+
 function NumberSelector({label, 
                          defaultNum, 
                          decrement,
@@ -37,7 +54,7 @@ function Clock({modeIsSession, time}){
     )
 }
 
-function ControlPanel({ togglePlaying, resetButton }){
+function ControlPanel ({ togglePlaying, resetButton }){
   return (
     <div>
       <div id='start_stop' onClick={togglePlaying}>Play</div>
@@ -46,21 +63,34 @@ function ControlPanel({ togglePlaying, resetButton }){
     )
 }
 
-const DEFAULT_STATE = {
-        break: 1,
-        session: 1,
-        playing: false,
-        modeIsSession: true,
+class Beep extends React.Component {
+
+  componentDidMount(){
+    console.log(this.props.endBeep);
+    this.interval = setTimeout(() => this.props.endBeep(), BEEP_INTERVAL);
+  }
+
+  componentWillUnmount(){
+    clearInterval(this.interval);
+  }
+
+  render(){
+    return (<audio 
+                id="beep" 
+                src="/beep.mp3"
+                autoPlay>
+                Your browser does not support the <code>audio</code> element.
+              </audio>
+    )
+  }
 }
 
-DEFAULT_STATE['time'] = DEFAULT_STATE['session'] * 60;
 
-const TIME_INTERVAL = 1000;
 
 class App extends React.Component {
 
   constructor(props){
-    super(props)
+    super(props);
     this.state = DEFAULT_STATE;
 
     this.incrementBreak = this.incrementBreak.bind(this);
@@ -71,6 +101,8 @@ class App extends React.Component {
 
     this.resetButton = this.resetButton.bind(this);
     this.togglePlaying = this.togglePlaying.bind(this);
+
+    this.endBeep = this.endBeep.bind(this);
   }
 
 
@@ -145,12 +177,19 @@ class App extends React.Component {
 
 }
   togglePlaying(){
-
       this.setState({
         playing: !this.state.playing,
+        beep: false
       })
       
   }
+
+  endBeep(){
+    this.setState({
+      beep: false
+    })
+  }
+
 
   tick(){
     if (this.state.playing && this.state.time >= 0) {
@@ -161,11 +200,14 @@ class App extends React.Component {
       if (this.state.modeIsSession){
       this.setState({
         modeIsSession: !this.state.modeIsSession,
-        time: this.state.break*60})
+        time: this.state.break*60,
+        beep: true
+      })
     } else {
       this.setState({
         modeIsSession: !this.state.modeIsSession,
-        time: this.state.session*60
+        time: this.state.session*60,
+        beep: true
       })
     }
   }
@@ -209,6 +251,7 @@ class App extends React.Component {
   }
 
 
+
   return (
     <div className="App">
       <Title />
@@ -216,6 +259,7 @@ class App extends React.Component {
       <NumberSelector {...sessionProps} />
       <Clock {...clockProps}/>
       <ControlPanel {...controlPanelProps}/>
+      {this.state.beep ? <Beep endBeep={this.endBeep} /> : null}
     </div>
 
   )};
