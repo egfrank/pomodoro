@@ -5,18 +5,16 @@ import './App.css';
 
 const DEFAULT_STATE = {
         break: 5,
-        session: 1,
+        session: 25,
         playing: false,
         modeIsSession: true,
-        beep: false,
 }
 
 DEFAULT_STATE['time'] = DEFAULT_STATE['session'] * 60;
 
 
 
-const TIME_INTERVAL = 10;
-const BEEP_INTERVAL = 2000;
+const TIME_INTERVAL = 1000;
 
 
 function NumberSelector({label, 
@@ -63,31 +61,10 @@ function ControlPanel ({ togglePlaying, resetButton }){
     )
 }
 
-class Beep extends React.Component {
-
-  componentDidMount(){
-    console.log(this.props.endBeep);
-    this.interval = setTimeout(() => this.props.endBeep(), BEEP_INTERVAL);
-  }
-
-  componentWillUnmount(){
-    clearInterval(this.interval);
-  }
-
-  render(){
-    return (<audio 
-                id="beep" 
-                src="/beep.mp3"
-                autoPlay>
-                Your browser does not support the <code>audio</code> element.
-              </audio>
-    )
-  }
-}
-
 
 
 class App extends React.Component {
+
 
   constructor(props){
     super(props);
@@ -102,7 +79,7 @@ class App extends React.Component {
     this.resetButton = this.resetButton.bind(this);
     this.togglePlaying = this.togglePlaying.bind(this);
 
-    this.endBeep = this.endBeep.bind(this);
+    this.audioRef = React.createRef();
   }
 
 
@@ -179,15 +156,13 @@ class App extends React.Component {
   togglePlaying(){
       this.setState({
         playing: !this.state.playing,
-        beep: false
       })
+      this.audioRef.current.pause()
       
   }
 
-  endBeep(){
-    this.setState({
-      beep: false
-    })
+  playBeep(){
+    this.audioRef.current.play();
   }
 
 
@@ -201,20 +176,22 @@ class App extends React.Component {
       this.setState({
         modeIsSession: !this.state.modeIsSession,
         time: this.state.break*60,
-        beep: true
       })
+      this.playBeep();
+
     } else {
       this.setState({
         modeIsSession: !this.state.modeIsSession,
         time: this.state.session*60,
-        beep: true
       })
+      this.playBeep()
     }
   }
 }
 
   resetButton() {
     this.setState(DEFAULT_STATE);
+    this.audioRef.current.load()
   }
 
 
@@ -259,7 +236,13 @@ class App extends React.Component {
       <NumberSelector {...sessionProps} />
       <Clock {...clockProps}/>
       <ControlPanel {...controlPanelProps}/>
-      {this.state.beep ? <Beep endBeep={this.endBeep} /> : null}
+      <audio 
+                ref={this.audioRef}
+                id="beep"
+                src="/beep.mp3"
+                >
+                Your browser does not support the <code>audio</code> element.
+      </audio>    
     </div>
 
   )};
